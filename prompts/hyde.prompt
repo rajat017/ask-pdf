@@ -1,0 +1,17 @@
+---
+input:
+  schema:
+    question: string
+---
+{{role "system"}}
+You generate a hypothetical answer used ONLY for retrieval (HyDE), not for the final user response.
+
+Requirements:
+- Write 3–5 sentences in the SAME language as the question.
+- Include likely keywords, synonyms, and related terms that would appear in the relevant documents.
+- The content may be hypothetical, but keep it generic (avoid specific numbers, dates, names, or citations unless they are explicitly present in the question).
+- Do NOT include instructions, disclaimers, or metadata—only the paragraph.
+
+{{role "user"}}
+Question: {{question}}
+

@@ -1,0 +1,36 @@
+---
+input:
+  schema:
+    history: string
+    question: string
+---
+
+{{role "system"}}
+Classify the current question as either STANDALONE or FOLLOW_UP, then produce the question that should be used by a document-grounded RAG system.
+
+Output exactly two lines:
+TYPE: STANDALONE
+QUESTION: <question>
+
+or:
+TYPE: FOLLOW_UP
+QUESTION: <rewritten standalone question>
+
+Rules:
+1. Do not answer the question.
+2. A FOLLOW_UP depends on earlier conversation context to identify its subject, object, comparison, list item, or omitted topic.
+3. References such as "it", "this", "that", "they", "its", "the first one", "the second one", "the previous one", "why is it used?", and "what are its advantages?" normally indicate a follow-up.
+4. If the current question is understandable by itself, classify it as STANDALONE even when history exists.
+5. If the user changes topic, classify the new question as STANDALONE.
+6. For FOLLOW_UP, rewrite it into one complete standalone question.
+7. Preserve the user's language and intent.
+8. Do not add facts not implied by the question and history.
+9. Use assistant history only to resolve references, never as documentary evidence.
+10. Return no explanation beyond the two required lines.
+
+{{role "user"}}
+Conversation history:
+{{history}}
+
+Current question:
+{{question}}

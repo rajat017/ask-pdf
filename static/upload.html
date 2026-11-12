@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Ask PDF – Upload</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f3f6fb; --bg-2: #eef4fb; --surface: #ffffff; --surface-soft: #f8fafc; --surface-raised: rgba(255,255,255,.88);
+    --text: #111827; --muted: #64748b; --border: #e2e8f0; --border-strong: #cbd5e1;
+    --primary: #2563eb; --primary-hover: #1d4ed8; --primary-soft: #dbeafe; --primary-text: #1e40af;
+    --danger: #dc2626; --danger-soft: #fef2f2; --success: #15803d; --success-soft: #f0fdf4; --warning: #a16207; --warning-soft: #fffbeb;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.06); --shadow-md: 0 14px 36px rgba(15,23,42,.10); --radius-xl: 24px; --radius-lg: 18px; --radius-md: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0f19; --bg-2: #0f172a; --surface: #111827; --surface-soft: #0f172a; --surface-raised: rgba(17,24,39,.88);
+      --text: #e5e7eb; --muted: #94a3b8; --border: #1f2937; --border-strong: #334155;
+      --primary: #60a5fa; --primary-hover: #93c5fd; --primary-soft: rgba(96,165,250,.16); --primary-text: #bfdbfe;
+      --danger: #f87171; --danger-soft: rgba(127,29,29,.28); --success: #86efac; --success-soft: rgba(20,83,45,.26); --warning: #facc15; --warning-soft: rgba(113,63,18,.24);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.32); --shadow-md: 0 16px 42px rgba(0,0,0,.35);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: radial-gradient(circle at top left, rgba(37,99,235,.13), transparent 34rem), linear-gradient(180deg, var(--bg-2), var(--bg)); color: var(--text); min-height: 100vh; }
+  button, input, textarea, select { font: inherit; }
+  .nav { position: sticky; top: 0; z-index: 10; background: var(--surface-raised); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: 14px clamp(16px,4vw,34px); display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; background: linear-gradient(135deg,#2563eb,#4f46e5); color: #fff; font-weight: 800; box-shadow: 0 10px 22px rgba(37,99,235,.24); }
+  .brand h1 { font-size: 17px; line-height: 1.1; letter-spacing: -.02em; } .brand p { margin-top: 3px; font-size: 12px; color: var(--muted); }
+  .nav-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 700; padding: 8px 12px; border: 1px solid transparent; border-radius: 999px; }
+  .nav-link:hover, .nav-link.active { color: var(--primary-text); background: var(--primary-soft); border-color: rgba(96,165,250,.35); }
+  .reset-btn { background: var(--danger); color: #fff; border: none; padding: 9px 12px; border-radius: 999px; font-size: 13px; font-weight: 760; cursor: pointer; }
+  .reset-btn:disabled { opacity: .55; cursor: not-allowed; }
+  main { width: min(1180px,100%); margin: 0 auto; padding: 24px clamp(14px,4vw,26px); }
+  .page-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px; align-items: end; margin-bottom: 18px; }
+  .page-head h2 { font-size: clamp(25px,4vw,40px); letter-spacing: -.04em; line-height: 1.08; margin-bottom: 8px; }
+  .page-head p { color: var(--muted); line-height: 1.6; max-width: 700px; }
+  .layout { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(360px,.9fr); gap: 18px; align-items: start; }
+  .card { background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); overflow: hidden; }
+  .card-head { padding: 17px 18px; border-bottom: 1px solid var(--border); background: var(--surface-soft); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .card-head h3 { font-size: 16px; letter-spacing: -.01em; } .card-head p { margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .card-body { padding: 18px; }
+  .tab-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 15px; margin-bottom: 16px; }
+  .tab-btn { border: none; border-radius: 12px; padding: 10px 12px; background: transparent; color: var(--muted); font-weight: 760; cursor: pointer; }
+  .tab-btn.active { background: var(--surface); color: var(--primary-text); box-shadow: var(--shadow-sm); }
+  .pane { display: none; } .pane.active { display: block; }
+  .drop-zone { border: 2px dashed var(--border-strong); border-radius: 20px; padding: 36px 24px; text-align: center; cursor: pointer; background: var(--surface-soft); transition: .16s ease; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--primary); background: var(--primary-soft); }
+  .drop-icon { width: 48px; height: 48px; margin: 0 auto 12px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); font-size: 30px; }
+  .drop-zone strong { display: block; font-size: 15px; margin-bottom: 6px; } .drop-zone span { display: block; color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .drop-filename { display: none !important; margin-top: 10px; color: var(--text) !important; font-weight: 780; } .drop-zone.has-file .drop-filename { display: block !important; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 760; }
+  .field input { width: 100%; border: 1px solid var(--border-strong); border-radius: 14px; padding: 11px 12px; background: var(--surface); color: var(--text); outline: none; }
+  .field input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent); }
+  .action-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px; }
+  .primary-btn { background: var(--primary); color: #fff; border: none; border-radius: 14px; padding: 12px 18px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 24%, transparent); }
+  .primary-btn:hover { background: var(--primary-hover); } .primary-btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+  .secondary-btn { border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 12px; padding: 9px 12px; font-weight: 760; cursor: pointer; }
+  .secondary-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  #uploadStatus { font-size: 13px; line-height: 1.45; color: var(--muted); } .status-ok { color: var(--success) !important; } .status-err { color: var(--danger) !important; } .status-busy { color: var(--warning) !important; }
+  .log-area { display: flex; flex-direction: column; gap: 8px; max-height: 310px; overflow-y: auto; }
+  .log-area:empty::before { content: "Indexierte Dokumente erscheinen hier."; color: var(--muted); font-size: 14px; }
+  .log-entry { font-size: 13px; line-height: 1.5; padding: 11px 13px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .log-entry.success { border-color: color-mix(in srgb, var(--success) 36%, transparent); background: var(--success-soft); color: var(--success); }
+  .log-entry.error { border-color: color-mix(in srgb, var(--danger) 38%, transparent); background: var(--danger-soft); color: var(--danger); }
+  .manager-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .doc-list { display: flex; flex-direction: column; gap: 9px; max-height: 520px; overflow-y: auto; }
+  .doc-empty { color: var(--muted); font-size: 14px; line-height: 1.55; padding: 14px; background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 16px; }
+  .doc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 13px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: start; }
+  .doc-title { font-weight: 800; font-size: 14px; overflow-wrap: anywhere; }
+  .doc-meta { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 11px; color: var(--primary-text); background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent); padding: 3px 7px; border-radius: 999px; }
+  .delete-doc { border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); background: var(--danger-soft); color: var(--danger); border-radius: 12px; padding: 8px 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .api-note { margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } .page-head { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .nav, .page-head, .action-row { flex-direction: column; align-items: stretch; } .field-grid { grid-template-columns: 1fr; } .doc-card { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="brand"><div class="brand-mark">A</div><div><h1>Upload</h1><p>Quellen indexieren und verwalten</p></div></div>
+  <nav class="nav-links" aria-label="Navigation">
+    <a class="nav-link" href="/">Suche</a>
+    <a class="nav-link active" href="/upload.html">Upload</a>
+    <a class="nav-link" href="/crawler.html">Crawler</a>
+    <button id="resetBtn" class="reset-btn" onclick="resetStore()">Datenbank zurücksetzen</button>
+  </nav>
+</header>
+
+<main>
+  <section class="page-head">
+    <div><h2>Quellen hinzufügen</h2><p>Lade PDFs hoch, indexiere einzelne Webseiten und kontrolliere anschließend, welche Dokumente im System sichtbar sind.</p></div>
+    <button class="secondary-btn" onclick="loadDocuments()">Dokumentliste neu laden</button>
+  </section>
+  <section class="layout">
+    <article class="card">
+      <div class="card-head"><div><h3>Neue Quelle indexieren</h3><p>PDF-Datei oder einzelne Webseite mit optionalem Tag und Datum speichern.</p></div></div>
+      <div class="card-body">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="pdf" onclick="switchTab('pdf')">PDF-Datei</button>
+          <button class="tab-btn" data-tab="web" onclick="switchTab('web')">Webseite</button>
+        </div>
+        <div id="srcPdf" class="pane active">
+          <div class="drop-zone" id="dropZone" tabindex="0">
+            <div class="drop-icon">+</div>
+            <strong>PDF hierher ziehen oder auswählen</strong>
+            <span>Die Datei wird über <code>/api/upload</code> indexiert.</span>
+            <span class="drop-filename" id="dropFilename"></span>
+            <input type="file" id="pdfFile" accept=".pdf" hidden>
+          </div>
+        </div>
+        <div id="srcWeb" class="pane">
+          <label class="field">URL
+            <input type="url" id="urlInput" placeholder="https://example.com/seite">
+          </label>
+        </div>
+        <div class="field-grid">
+          <label class="field">Tag
+            <input type="text" id="tagInput" placeholder="z.B. Vertrag, rag, python">
+          </label>
+          <label class="field">Datum
+            <input type="date" id="datumInput">
+          </label>
+        </div>
+        <div class="action-row">
+          <span id="uploadStatus"></span>
+          <button id="indexBtn" class="primary-btn" onclick="indexDocument()">Indexieren</button>
+        </div>
+      </div>
+    </article>
+
+    <aside class="card">
+      <div class="card-head"><div><h3>Dokument-Manager</h3><p>Zeigt vorhandene Dokumente, wenn dein Backend einen Listen-Endpunkt anbietet.</p></div></div>
+      <div class="card-body">
+        <div class="manager-toolbar">
+          <button class="secondary-btn" onclick="loadDocuments()">Aktualisieren</button>
+          <button class="secondary-btn" onclick="clearDocumentList()">Ansicht leeren</button>
+        </div>
+        <div id="docList" class="doc-list"><div class="doc-empty">Noch nicht geladen. Klicke auf „Aktualisieren“.</div></div>
+        <p class="api-note">Der Manager versucht automatisch <code>/api/documents</code>, <code>/documents</code> und <code>/api/listDocuments</code>. Falls dein Backend diese Endpunkte noch nicht hat, bleibt Upload/Reset trotzdem funktionsfähig.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="card" style="margin-top:18px">
+    <div class="card-head"><div><h3>Aktivität</h3><p>Upload-, Indexierungs- und Reset-Meldungen.</p></div></div>
+    <div class="card-body"><div class="log-area" id="log"></div></div>
+  </section>
+</main>
+
+<script>
+let activeTab = 'pdf';
+const logEl = document.getElementById('log');
+const statusEl = document.getElementById('uploadStatus');
+
+{
+  const zone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('pdfFile');
+  const nameSpan = document.getElementById('dropFilename');
+  zone.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+  zone.addEventListener('dragenter', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showFileName(e.dataTransfer.files[0].name); }
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) showFileName(fileInput.files[0].name);
+    else { nameSpan.textContent = ''; zone.classList.remove('has-file'); }
+  });
+  function showFileName(name) { nameSpan.textContent = name; zone.classList.add('has-file'); setStatus('', ''); }
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('srcPdf').classList.toggle('active', tab === 'pdf');
+  document.getElementById('srcWeb').classList.toggle('active', tab === 'web');
+  setStatus('', '');
+}
+
+function setStatus(text, cls) {
+  statusEl.textContent = text || '';
+  statusEl.className = cls ? 'status-' + cls : '';
+}
+
+function addLog(text, cls) {
+  const div = document.createElement('div');
+  div.className = 'log-entry' + (cls ? ' ' + cls : '');
+  div.textContent = text;
+  logEl.prepend(div);
+  return div;
+}
+
+function indexDocument() { activeTab === 'pdf' ? uploadPDF() : indexURL(); }
+
+async function uploadPDF() {
+  const fileInput = document.getElementById('pdfFile');
+  const tag = document.getElementById('tagInput').value.trim();
+  const datum = document.getElementById('datumInput').value;
+  const btn = document.getElementById('indexBtn');
+  if (!fileInput.files.length) { setStatus('Bitte eine PDF-Datei auswählen.', 'err'); return; }
+  const file = fileInput.files[0];
+  const form = new FormData();
+  form.append('file', file);
+  if (tag) form.append('tag', tag);
+  if (datum) form.append('datum', datum);
+  btn.disabled = true; setStatus('Indexiere PDF...', 'busy');
+  try {
+    const resp = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      setStatus(data.error?.message || data.error || 'Fehler beim Upload', 'err');
+      addLog(`${file.name}: Upload fehlgeschlagen.`, 'error');
+    } else {
+      const indexed = data.documentsIndexed ?? data.result?.documentsIndexed ?? '?';
+      setStatus(`${indexed} Chunks indexiert.`, 'ok');
+      addLog(`${file.name}: ${indexed} Chunks indexiert.`, 'success');
+      fileInput.value = ''; document.getElementById('dropFilename').textContent = ''; document.getElementById('dropZone').classList.remove('has-file');
+      loadDocuments(true);
+    }
+  } catch (e) { setStatus('Netzwerkfehler: ' + e.message, 'err'); addLog('Netzwerkfehler: ' + e.message, 'error'); }
+  finally { btn.disabled = false; }
+}
+
+async function indexURL() {
+  const urlInput = document.getElementById('urlInput');
+  const url = urlInput.value.trim();
+  const tag = document.getElementById('tagInput').value.trim();
+  const datum = document.getElementById('datumInput').value;
+  const btn = document.getElementById('indexBtn');
+  if (!url) { setStatus('Bitte eine URL eingeben.', 'err'); return; }
+  const body = { url }; if (tag) body.tag = tag; if (datum) body.datum = datum;
+  btn.disabled = true; setStatus('Lade Webseite und indexiere...', 'busy');
+  try {
+    const resp = await fetch('/addWebDocument', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: body }) });
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      setStatus(data.error?.message || data.error || 'Fehler beim Indexieren', 'err');
+      addLog(`${url}: Indexierung fehlgeschlagen.`, 'error');
+    } else {
+      const result = data.result || data;
+      setStatus(`${result.documentsIndexed ?? '?'} Chunks indexiert.`, 'ok');
+      addLog(`${url}: ${result.documentsIndexed ?? '?'} Chunks indexiert.`, 'success');
+      urlInput.value = '';
+      loadDocuments(true);
+    }
+  } catch (e) { setStatus('Netzwerkfehler: ' + e.message, 'err'); addLog('Netzwerkfehler: ' + e.message, 'error'); }
+  finally { btn.disabled = false; }
+}
+
+function normalizeDocuments(payload) {
+  const data = payload?.result ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.documents)) return data.documents;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.sources)) return data.sources;
+  return [];
+}
+
+async function loadDocuments(silent = false) {
+  const list = document.getElementById('docList');
+  if (!silent) list.innerHTML = '<div class="doc-empty">Lade Dokumentliste...</div>';
+  const endpoints = ['/api/documents', '/documents', '/api/listDocuments'];
+  let lastError = '';
+  for (const endpoint of endpoints) {
+    try {
+      const resp = await fetch(endpoint, { method: 'GET', headers: { 'Accept': 'application/json' } });
+      if (!resp.ok) { lastError = `${endpoint}: ${resp.status}`; continue; }
+      const data = await resp.json();
+      const docs = normalizeDocuments(data);
+      renderDocuments(docs, endpoint);
+      return;
+    } catch (e) { lastError = e.message; }
+  }
+  if (!silent) list.innerHTML = `<div class="doc-empty">Keine Dokumentliste verfügbar. Dein aktuelles Backend scheint noch keinen passenden Listen-Endpunkt zu haben.<br><br>Letzter Versuch: ${escapeHtml(lastError || 'unbekannt')}</div>`;
+}
+
+function renderDocuments(docs, endpoint) {
+  const list = document.getElementById('docList');
+  if (!docs.length) { list.innerHTML = `<div class="doc-empty">Endpunkt gefunden (${endpoint}), aber keine Dokumente erhalten.</div>`; return; }
+  list.innerHTML = '';
+  docs.forEach((doc, index) => {
+    const id = doc.id || doc.documentId || doc.sourceId || doc.url || doc.filename || doc.fileName || '';
+    const title = doc.title || doc.name || doc.fileName || doc.filename || doc.url || `Dokument ${index + 1}`;
+    const card = document.createElement('div'); card.className = 'doc-card';
+    const main = document.createElement('div');
+    const t = document.createElement('div'); t.className = 'doc-title'; t.textContent = title; main.appendChild(t);
+    const meta = document.createElement('div'); meta.className = 'doc-meta';
+    [['Typ', doc.type], ['Tag', doc.tag], ['Datum', doc.datum || doc.date], ['Chunks', doc.chunks || doc.documentsIndexed || doc.chunkCount], ['Quelle', doc.url ? 'Web' : (doc.pages ? 'PDF' : '')]].forEach(([k, v]) => {
+      if (v !== undefined && v !== null && String(v).trim() !== '') { const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = `${k}: ${v}`; meta.appendChild(chip); }
+    });
+    if (meta.children.length) main.appendChild(meta);
+    const del = document.createElement('button'); del.className = 'delete-doc'; del.textContent = 'Löschen'; del.onclick = () => deleteDocument(id, title);
+    card.appendChild(main); card.appendChild(del); list.appendChild(card);
+  });
+}
+
+async function deleteDocument(id, title) {
+  if (!id) { addLog('Dieses Dokument hat keine ID/URL für Einzellöschung.', 'error'); return; }
+  if (!confirm(`Dokument löschen?\n${title}`)) return;
+  const endpoints = [`/api/documents/${encodeURIComponent(id)}`, `/documents/${encodeURIComponent(id)}`, `/api/document/${encodeURIComponent(id)}`];
+  let lastError = '';
+  for (const endpoint of endpoints) {
+    try {
+      const resp = await fetch(endpoint, { method: 'DELETE' });
+      if (resp.ok) { addLog(`${title}: gelöscht.`, 'success'); loadDocuments(); return; }
+      lastError = `${endpoint}: ${resp.status}`;
+    } catch (e) { lastError = e.message; }
+  }
+  addLog(`Einzellöschung nicht verfügbar: ${lastError}`, 'error');
+}
+
+function clearDocumentList() { document.getElementById('docList').innerHTML = '<div class="doc-empty">Ansicht geleert. Klicke auf „Aktualisieren“, um erneut zu laden.</div>'; }
+function escapeHtml(str) { return String(str).replace(/[&<>"]/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[s])); }
+
+async function resetStore() {
+  if (!confirm('Alle indexierten Dokumente unwiderruflich löschen?')) return;
+  const btn = document.getElementById('resetBtn'); btn.disabled = true;
+  try {
+    const resp = await fetch('/api/reset', { method: 'DELETE' });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || data.error) addLog('Reset fehlgeschlagen: ' + (data.error?.message || data.error || resp.statusText), 'error');
+    else { addLog('Datenbank wurde zurückgesetzt.', 'success'); clearDocumentList(); }
+  } catch (e) { addLog('Netzwerkfehler: ' + e.message, 'error'); }
+  finally { btn.disabled = false; }
+}
+</script>
+</body>
+</html>

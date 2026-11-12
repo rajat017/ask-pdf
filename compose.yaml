@@ -1,0 +1,54 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3400:3400"
+    environment:
+      OLLAMA_MODEL: gemma3:4b
+      EMBEDDING_MODEL: nomic-embed-text
+      CHUNK_SIZE: "1500"
+      CHUNK_OVERLAP: "200"
+      OLLAMA_HOST: http://ollama:11434
+      LISTEN_ADDR: 0.0.0.0:3400
+      STORE_BACKEND: pgvector
+      DATABASE_URL: postgres://askpdf:askpdf@postgres:5432/askpdf?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    build: ./postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: askpdf
+      POSTGRES_PASSWORD: askpdf
+      POSTGRES_DB: askpdf
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U askpdf"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  ollama:

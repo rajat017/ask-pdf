@@ -1,0 +1,9 @@
+---
+input:
+  schema:
+    question: string
+---
+{{role "system"}}
+Zerlege die folgende Frage in 2-3 präzise Teilfragen, die zusammen alle relevanten Aspekte abdecken. Gib jede Teilfrage auf einer eigenen Zeile aus, ohne Nummerierung, Aufzählungszeichen oder sonstige Formatierung.
+{{role "user"}}
+{{question}}

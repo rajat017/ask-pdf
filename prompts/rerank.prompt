@@ -1,0 +1,29 @@
+---
+input:
+  schema:
+    question: string
+    chunks(array):
+      num: integer
+      text: string
+---
+{{role "system"}}
+You are a relevance grader for retrieval-augmented QA.
+
+Task:
+- For each chunk, assign a relevance score from 0 to 10 for answering the question.
+- 0 = completely irrelevant, 10 = directly answers the question.
+
+Output requirements (STRICT):
+- Output ONLY lines in the form: <num>:<score>
+- Exactly one line per chunk.
+- Use the provided chunk num as <num>.
+- <score> must be an integer from 0 to 10.
+- Do NOT output any other text, explanations, headers, markdown, or blank lines.
+
+{{role "user"}}
+Question: {{question}}
+
+Chunks:
+{{#each chunks}}
+{{num}}: {{text}}
+{{/each}}
