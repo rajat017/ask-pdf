@@ -63,8 +63,8 @@ For a university-hosted model, the inference endpoint must actually serve the se
 Clone the repository and enter the project directory:
 
 ```bash
-git clone <your-gitlab-repository-url>
-cd ask-pdf-clean
+git clone https://github.com/rajat017/ask-pdf.git
+cd ask-pdf
 
 go mod download
 ```
